@@ -1,7 +1,14 @@
-import './style.css'
+ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'dat.gui'
+
+//loader
+
+const textureLoader = new THREE.TextureLoader()
+
+const normalMapTexture = textureLoader.load('/texture/normalMap.png')
+
 
 // Debug
 const gui = new dat.GUI()
@@ -13,12 +20,16 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 // Objects
-const geometry = new THREE.TorusGeometry( .7, .2, 16, 100 );
 
+const geometry = new THREE.SphereBufferGeometry(0.5,64,64)
 // Materials
 
-const material = new THREE.MeshBasicMaterial()
-material.color = new THREE.Color(0xff0000)
+const material = new THREE.MeshStandardMaterial()
+
+material.metalness=  0.7;
+material.roughness = 0.2
+material.normalMap = normalMapTexture
+material.color = new THREE.Color(0x292929)
 
 // Mesh
 const sphere = new THREE.Mesh(geometry,material)
@@ -27,11 +38,56 @@ scene.add(sphere)
 // Lights
 
 const pointLight = new THREE.PointLight(0xffffff, 0.1)
-pointLight.position.x = 2
-pointLight.position.y = 3
-pointLight.position.z = 4
+// pointLight.position.x = 2
+// pointLight.position.y = 3
+// pointLight.position.z = 4
 scene.add(pointLight)
 
+
+//Light 2
+
+const pointLight_2 = new THREE.PointLight(0xff0000, 2);
+pointLight_2.position.set(-1.5,1,-1.19)
+pointLight_2.intensity =10
+scene.add(pointLight_2);
+
+// const light2 = gui.addFolder('Light2')
+
+// light2.add(pointLight_2.position, 'y').min(-3).max(3).step(0.01)
+// light2.add(pointLight_2.position, 'x').min(-3).max(3).step(0.01)
+// light2.add(pointLight_2.position, 'z').min(-3).max(3).step(0.01)
+// light2.add(pointLight_2,'intensity').min(0).max(10).step(0.01)
+
+
+
+// const pointHelper = new THREE.PointLightHelper(pointLight_2, 1)
+
+// scene.add(pointHelper)
+
+
+//Light 3
+
+const pointLight_3 = new THREE.PointLight(0x2c00ff, 2);
+pointLight_3.position.set(3,-1.45,-2.91)
+pointLight_3.intensity = 10;
+scene.add(pointLight_3)
+
+// const light3 = gui.addFolder('Light3')
+
+// light3.add(pointLight_3.position, 'x').min(-3).max(3).step(0.01)
+// light3.add(pointLight_3.position, 'y').min(-3).max(3).step(0.01)
+// light3.add(pointLight_3.position, 'z').min(-3).max(3).step(0.01)
+// light3.add(pointLight_3,'intensity').min(1).max(10).step(0.01)
+
+
+// const light3Color = {
+//     color: 0xff0000
+// }
+
+// light3.addColor(light3Color, 'color').onChange(() =>{
+
+//     pointLight_3.color.set(light3Color.color)
+// })
 /**
  * Sizes
  */
@@ -73,7 +129,8 @@ scene.add(camera)
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
+    canvas: canvas,
+    alpha: true
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -82,15 +139,48 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  * Animate
  */
 
+//Mouse Interactivity
+
+document.addEventListener('mousemove' , onDocumentMouseMove)
+
+let mouseX = 0;
+let mouseY = 0; 
+
+let targetX = 0;
+let targetY = 0;
+
+const windowX = window.innerWidth/2;
+const windowY = window.innerHeight/2;
+
+function onDocumentMouseMove (event){
+  mouseX = event.clientX - windowX;
+  mouseY = event.clientY - windowY;
+};
+
+const updateSphere =(event) =>{
+    sphere.position.y = window.scrollY * .001
+}
+
+
+window.addEventListener("scroll" , updateSphere)
+
+
+
 const clock = new THREE.Clock()
 
 const tick = () =>
-{
+ {
+        targetX = mouseX * .001
+        targetY = mouseY * .001
 
     const elapsedTime = clock.getElapsedTime()
 
     // Update objects
     sphere.rotation.y = .5 * elapsedTime
+
+    sphere.rotation.y += .5 * (targetX - sphere.rotation.y)
+    sphere.rotation.x += .5 * (targetY - sphere.rotation.x)
+    sphere.position.z += .5 * (targetY - sphere.rotation.x)
 
     // Update Orbital Controls
     // controls.update()
